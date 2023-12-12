@@ -1,6 +1,6 @@
 .ipynb_checkpoints/
 .vscode/
-myvenv/*
 !.gitignore
 !*.py
 !*.ipynb
+myenv/
