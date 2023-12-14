@@ -1,0 +1,3 @@
+fastapi==0.105.0
+faster_whisper
+uvicorn==0.24.0.post1
