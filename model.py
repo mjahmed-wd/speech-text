@@ -1,13 +1,13 @@
 from faster_whisper import WhisperModel
 
-model_size_or_path = "base"
+model_size_or_path = "tiny"
 
-model = WhisperModel(model_size_or_path, device="auto", cpu_threads=4)
+model = WhisperModel(model_size_or_path, device="auto", compute_type='int8', cpu_threads=4, )
 
-def transcribe_file(fileName):
-    print('Started transcribing file: ' + fileName)
+def transcribe_file(fileUrl):
+    print('Started transcribing file: ' + fileUrl)
     
-    segments, _ = model.transcribe(fileName, beam_size=1, word_timestamps=True)
+    segments, _ = model.transcribe(fileUrl, beam_size=5, word_timestamps=True)
 
     segment_list = []
     for segment in segments:
@@ -25,6 +25,6 @@ def transcribe_file(fileName):
         }
         segment_list.append(segment_dict)
 
-    print('Finished transcribing file: ' + fileName)
+    print('Finished transcribing file: ' + fileUrl)
 
     return segment_list

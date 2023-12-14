@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from model import transcribe_file
-import uvicorn
+from fastapi import Request
 
 app = FastAPI()
 
@@ -8,10 +8,9 @@ app = FastAPI()
 async def index():
     return {"data": "Welcome"}
 
-@app.get("/transcribe/{fileName}")
-async def transcribe(fileName: str):
-    result = transcribe_file(fileName)
-    return {"data": result}
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8342)
+@app.post("/transcribe")
+async def transcribe(request: Request):
+    data = await request.json()
+    fileUrl = data.get("fileUrl")
+    result = transcribe_file(fileUrl)
+    return result
