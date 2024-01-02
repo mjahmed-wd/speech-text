@@ -1,0 +1,33 @@
+version: '3'
+services:
+  server:
+    build: .
+    command: sh -c "uvicorn main:app --reload --port=8000 --host=0.0.0.0"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    platform: linux/amd64
+    depends_on:
+      - mongo-primary
+    networks:
+      - node-network
+
+  mongo-primary:
+    image: mongo:6-jammy
+    ports:
+       - '8080:27017'
+    volumes:
+      - dbdata6:/data/db
+    networks:
+      - node-network
+
+volumes:
+  dbdata6:
+
+
+networks:
+  node-network:
+    driver: bridge
