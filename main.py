@@ -3,8 +3,7 @@ import os
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from bson.objectid import ObjectId
-from llama_index import download_loader, VectorStoreIndex
-
+from llama_index import download_loader, VectorStoreIndex, SimpleDirectoryReader, StorageContext, load_index_from_storage
 from model import transcribe_file
 import db_connection
 from bson import ObjectId
@@ -45,8 +44,8 @@ async def save_transcribe(payload: TranscribeRequest):
     return {"transcription_id": str(inserted_id), "transcription": result, "fileUrl": fileUrl}
 
 
-@app.post("/search_transcript")
-async def search_transcript(transcript_id: str):
+@app.post("/summary_from_transcript")
+async def summary_from_transcript(transcript_id: str):
     if not transcript_id:
         raise HTTPException(status_code=400, detail="transcript_id is required")
     result = transcript_collection.find_one(ObjectId(transcript_id))
@@ -60,10 +59,24 @@ async def search_transcript(transcript_id: str):
     loader = JsonDataReader()
     documents = loader.load_data(result["transcription"])
     index = VectorStoreIndex.from_documents(documents)
+
+    persist_dir = f'./storage/cache/transcription/{transcript_id}'
+
+    try:
+        storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+        index = load_index_from_storage(storage_context)
+        print('loading from disk')
+    except:
+        JsonDataReader = download_loader("JsonDataReader")
+        loader = JsonDataReader()
+        documents = loader.load_data(result["transcription"])
+        index = VectorStoreIndex.from_documents(documents)
+        index.storage_context.persist(persist_dir=persist_dir)
+        print('creating on disk')
+
+
     query_engine = index.as_query_engine()
     query_result = query_engine.query("Give me a summary of the speech")
 
-    result = query_result.response
-
     
-    return result
+    return query_result.response
